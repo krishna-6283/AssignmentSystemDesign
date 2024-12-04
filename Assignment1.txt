@@ -1,0 +1,196 @@
+1. CREATE TABLE Books (
+    BookID INT PRIMARY KEY,
+    Title VARCHAR(100),
+    Author VARCHAR(50),
+    PublishedYear INT
+);
+
+ALTER TABLE Books
+ADD ISBN VARCHAR(13);
+
+ALTER TABLE Books
+DROP COLUMN PublishedYear;
+
+
+2. SELECT Name
+FROM Students
+WHERE Age > 15;
+
+INSERT INTO Students (StudentID, Name, Age, Grade)
+VALUES (104, 'Tom Brown', 15, 'C');
+
+UPDATE Students
+SET Grade = 'A+'
+WHERE Name = 'Jane Doe';
+
+DELETE FROM Students
+WHERE Grade = 'C';
+
+
+3. GRANT SELECT, INSERT ON Books TO User2;
+
+REVOKE INSERT ON Books FROM User2;
+
+
+4. START TRANSACTION;
+
+INSERT INTO Orders (OrderID, ProductID, Quantity)
+VALUES (201, 105, 2);
+
+UPDATE Inventory
+SET Quantity = Quantity - 2
+WHERE ProductID = 105;
+
+Check if an error occurred (in actual implementation, the condition would be handled by the database management system or a programming language)
+IF (error_condition) THEN
+    ROLLBACK;
+ELSE
+    COMMIT;
+END IF;
+
+
+5. CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Email VARCHAR(50),
+    Phone VARCHAR(15)
+);
+
+INSERT INTO Customers (CustomerID, Name, Email, Phone)
+VALUES (201, 'Emily Clark', 'emily@example.com', '1234567890');
+
+GRANT SELECT ON Customers TO AdminUser;
+
+ROLLBACK;
+
+
+6. CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Department VARCHAR(30),
+    Salary INT
+);
+
+ALTER TABLE Employees
+RENAME COLUMN Department TO Dept;
+
+ALTER TABLE Employees
+ADD JoiningDate DATE DEFAULT '2024-01-01';
+
+ALTER TABLE Employees
+DROP COLUMN Salary;
+
+CREATE TABLE Departments (
+    DeptID INT PRIMARY KEY,
+    DeptName VARCHAR(30) UNIQUE
+);
+
+ALTER TABLE Employees
+ADD DeptID INT,
+ADD CONSTRAINT FK_Department FOREIGN KEY (DeptID) REFERENCES Departments(DeptID);
+
+
+7. INSERT INTO Employees (EmployeeID, Name, Department, Salary)
+VALUES (1, 'Alice', 'HR', 50000);
+
+SELECT * FROM Employees
+WHERE Department = 'HR';
+
+UPDATE Employees
+SET Salary = Salary * 1.10
+WHERE Department = 'IT';
+
+DELETE FROM Employees
+WHERE Salary < 40000;
+
+MERGE INTO Employees AS target
+USING (SELECT 1 AS EmployeeID, 'Alice' AS Name, 'HR' AS Department, 55000 AS Salary) AS source
+ON target.EmployeeID = source.EmployeeID
+WHEN MATCHED THEN
+    UPDATE SET target.Salary = source.Salary
+WHEN NOT MATCHED THEN
+    INSERT (EmployeeID, Name, Department, Salary)
+    VALUES (source.EmployeeID, source.Name, source.Department, source.Salary);
+
+
+8. GRANT SELECT, UPDATE ON Employees TO HRManager;
+
+REVOKE UPDATE ON Employees FROM HRManager;
+
+CREATE ROLE DataViewer;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO DataViewer;
+
+GRANT DataViewer TO Viewer1;
+
+REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM InternUser;
+REVOKE ALL PRIVILEGES ON SCHEMA public FROM InternUser;
+
+
+9. BEGIN TRANSACTION;
+INSERT INTO Departments (DeptID, DeptName)
+VALUES (1, 'Finance');
+
+COMMIT;
+
+BEGIN TRANSACTION;
+INSERT INTO Departments (DeptID, DeptName)
+VALUES (2, 'IT');
+Simulate an error (e.g., if DeptID already exists or another error occurs)
+If any error happens, roll back the transaction.
+Example error handling in SQL:
+IF @@ERROR <> 0
+BEGIN
+    ROLLBACK;
+    PRINT 'Error occurred. Transaction rolled back.';
+    RETURN;
+END
+COMMIT;
+
+BEGIN TRANSACTION;
+
+Insert the first employee
+INSERT INTO Employees (EmployeeID, Name, Department, Salary)
+VALUES (1, 'Alice', 'HR', 50000);
+Set a savepoint after the first insert
+SAVEPOINT emp_insert_1;
+Insert the second employee
+INSERT INTO Employees (EmployeeID, Name, Department, Salary)
+VALUES (2, 'Bob', 'IT', 55000);
+Simulate an error (e.g., salary violation, etc.)
+ If an error occurs, roll back to the savepoint
+IF @@ERROR <> 0
+BEGIN
+    ROLLBACK TRANSACTION TO emp_insert_1;
+    PRINT 'Error occurred. Rolled back to the first employee insertion.';
+    COMMIT;   Committing the successful first insert
+    RETURN;
+END
+If no error, commit the transaction
+COMMIT;
+
+
+10. CREATE TABLE Projects (
+    ProjectID INT PRIMARY KEY,
+    ProjectName VARCHAR(50),
+    EmployeeID INT,
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID)
+);
+
+ INSERT INTO Projects (ProjectID, ProjectName, EmployeeID)
+VALUES (101, 'Website Upgrade', 1);
+
+BEGIN TRANSACTION;
+Insert a new project
+INSERT INTO Projects (ProjectID, ProjectName, EmployeeID)
+VALUES (102, 'Mobile App Development', 2);
+Check if the EmployeeID exists in the Employees table
+IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = 2)
+BEGIN
+    PRINT 'EmployeeID does not exist. Rolling back the transaction.';
+    ROLLBACK TRANSACTION;  Rollback if EmployeeID doesn't exist
+    RETURN;
+END
+Commit the transaction if no issues
+COMMIT;
+
+

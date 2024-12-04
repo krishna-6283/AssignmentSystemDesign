@@ -1,0 +1,122 @@
+1. CREATE TABLE Students (
+    StudentID INT PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    Age INT CHECK (Age BETWEEN 18 AND 25),
+    Grade DECIMAL(3, 1) CHECK (Grade BETWEEN 0.0 AND 10.0)
+);
+
+
+INSERT INTO Students (StudentID, Name, Age, Grade)
+VALUES (1, 'John Doe', 30, 8.5);
+INSERT INTO Students (StudentID, Name, Age, Grade)
+VALUES (2, 'Jane Smith', 22, 12.0);
+
+Violation of the Age constraint:
+The first insert statement tries to insert a student with Age = 30, which violates the CHECK constraint Age BETWEEN 18 AND 25.
+Error Message: CHECK constraint failed: Students (Age) or something similar depending on the database, indicating that the Age is out of the allowed range.
+Violation of the Grade constraint:
+The second insert statement attempts to insert a student with Grade = 12.0, which violates the CHECK constraint Grade BETWEEN 0.0 AND 10.0.
+Error Message: CHECK constraint failed: Students (Grade) or a similar message, indicating that the Grade is out of the valid range.
+
+
+
+2. CREATE TABLE Courses (
+    CourseID INT PRIMARY KEY,
+    CourseName VARCHAR(100),
+    Credits INT NOT NULL
+);
+
+INSERT INTO Courses (CourseName, Credits)
+VALUES ('Database Systems', 4);
+
+Entity integrity ensures that every record (or row) in a table has a unique and non-null identifier, typically enforced using a PRIMARY KEY. This constraint is crucial because:
+Uniqueness: It guarantees that each record in the table is unique and distinguishable from others. Without this uniqueness, it would be impossible to reference or identify specific records correctly.
+Non-nullability: It ensures that every record has a valid identifier (e.g., CourseID), preventing any ambiguity or inconsistency in the data.
+Data Integrity: It is essential for maintaining the integrity of relationships between tables. For instance, if the CourseID is used as a foreign key in other tables (such as a Students table), the integrity of these relationships depends on the uniqueness and non-nullability of the CourseID.
+Efficient Access: A PRIMARY KEY typically helps in creating indexes, making data retrieval faster and more efficient.
+
+
+3. Create Products table
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100)
+);
+
+ Create Orders table with a Foreign Key reference to Products
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    ProductID INT,
+    OrderQuantity INT NOT NULL,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+Inserting into Orders with a ProductID that does not exist in Products
+INSERT INTO Orders (OrderID, ProductID, OrderQuantity)
+VALUES (1, 999, 10);  -- Assuming ProductID 999 does not exist in Products table
+
+ Insert valid record into Products table
+INSERT INTO Products (ProductID, ProductName)
+VALUES (1, 'Laptop');
+
+Insert valid record into Orders table with a ProductID that exists in Products table
+INSERT INTO Orders (OrderID, ProductID, OrderQuantity)
+VALUES (1, 1, 5);  -- ProductID 1 exists in Products table
+
+
+
+4. CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Email VARCHAR(100) UNIQUE,
+    IsContractor BOOLEAN,
+    CHECK (IsContractor = TRUE OR Email IS NOT NULL)
+);
+
+Insert the first employee with a unique email
+INSERT INTO Employees (EmployeeID, Name, Email, IsContractor)
+VALUES (1, 'John Doe', 'johndoe@example.com', FALSE);
+Try inserting another employee with the same email
+INSERT INTO Employees (EmployeeID, Name, Email, IsContractor)
+VALUES (2, 'Jane Smith', 'johndoe@example.com', FALSE);
+The second INSERT statement will fail because the Email column has a UNIQUE constraint. Since the email 'johndoe@example.com' is already used by the first employee, the database will reject the second insert.
+Error Message: Depending on the database system, you might get a message like:
+ERROR: duplicate key value violates unique constraint "Employees_Email_key" (PostgreSQL)
+ERROR 1062 (23000): Duplicate entry 'johndoe@example.com' for key 'Employees.Email' (MySQL)
+
+-- Insert a contractor without specifying an email
+INSERT INTO Employees (EmployeeID, Name, Email, IsContractor)
+VALUES (3, 'Alice Johnson', NULL, TRUE);
+
+
+
+5. Create Accounts table
+CREATE TABLE Accounts (
+    AccountID INT PRIMARY KEY,
+    MobileNumber VARCHAR(10) CHECK (LENGTH(MobileNumber) = 10),
+    Balance DECIMAL(10, 2) CHECK (Balance >= 0)
+);
+Create Transactions table with a Foreign Key reference to Accounts
+CREATE TABLE Transactions (
+    TransactionID INT PRIMARY KEY,
+    AccountID INT,
+    TransactionAmount DECIMAL CHECK (TransactionAmount != 0),
+    FOREIGN KEY (AccountID) REFERENCES Accounts(AccountID)
+);
+
+
+Attempt to insert a transaction for a non-existent AccountID
+INSERT INTO Transactions (TransactionID, AccountID, TransactionAmount)
+VALUES (1, 999, 100.00);  -- Assuming AccountID 999 does not exist in Accounts table
+This insert statement will fail because AccountID 999 does not exist in the Accounts table. The FOREIGN KEY constraint ensures that every transaction must be linked to a valid account.
+Error Message: The exact message will depend on the database system, but it will typically look like:
+ERROR: insert or update on table "Transactions" violates foreign key constraint "Transactions_AccountID_fkey" (PostgreSQL)
+ERROR 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (MySQL)
+
+Insert valid record into Accounts table
+INSERT INTO Accounts (AccountID, MobileNumber, Balance)
+VALUES (1, '1234567890', 5000.00);
+Insert valid record into Transactions table
+INSERT INTO Transactions (TransactionID, AccountID, TransactionAmount)
+VALUES (1, 1, 200.00);  -- AccountID 1 exists in Accounts table
+
+
